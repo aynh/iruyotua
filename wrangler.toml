@@ -1,0 +1,10 @@
+name = "iruyotua"
+main = "src/index.ts"
+compatibility_date = "2023-05-11"
+
+[triggers]
+crons = ["0 * * * *"]
+
+[vars]
+# CGAS_API_KEY
+# DISCORD_WEBHOOK_URL
