@@ -3,7 +3,7 @@ main = "src/index.ts"
 compatibility_date = "2023-05-11"
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["*/30 * * * *"]
 
 [vars]
 # CGAS_API_KEY
