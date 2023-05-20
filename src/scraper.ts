@@ -6,12 +6,12 @@ export const getMaxImagesId = async () => {
 	const first = $('ul#images-lists.thumbnails > li.span2 > a.thumbnail').first();
 	const href = first.attr()?.['href'];
 	if (href === undefined) {
-		throw new ScraperError('getMaxImagesId: first image href is empty');
+		throw new ScraperError('getMaxImagesId', 'first image href is empty');
 	}
 
 	const id = Number(href.split('/').at(-1)!); // get 26823 part of href="/images/26823"
 	if (Number.isNaN(id)) {
-		throw new ScraperError(`getMaxImagesId: got invalid id from ${href}`);
+		throw new ScraperError('getMaxImagesId', `got invalid id from ${href}`);
 	}
 
 	return id;
@@ -23,7 +23,7 @@ export const getImageUrl = async (id: number) => {
 	const img = $('div#main.images.show > div.image > img');
 	const source = img.attr()?.['src'];
 	if (source === undefined) {
-		throw new ScraperError(`getImageUrl: ${id} image source is empty`);
+		throw new ScraperError('getImageUrl', `${id} image source is empty`);
 	}
 
 	const url = new URL(source, 'https://dynasty-scans.com');
@@ -35,11 +35,22 @@ export const getImageUrl = async (id: number) => {
 export const cheerioFromUrl = async (url: string) => {
 	const response = await fetch(url);
 	if (!response.ok) {
-		throw new ScraperError(`fetch: ${url} got response with status ${response.status}`);
+		throw new ScraperError('fetch', `${url} got response with status ${response.status}`);
 	}
 
 	const text = await response.text();
 	return cheerio.load(text);
 };
 
-export class ScraperError extends Error {}
+export class ScraperError extends Error {
+	func: string;
+
+	constructor(func: string, message: string) {
+		super(message);
+		this.func = func;
+	}
+
+	toString() {
+		return `${this.func}: ${this.message}`;
+	}
+}
