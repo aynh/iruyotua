@@ -33,13 +33,19 @@ export const getImageUrl = async (id: number) => {
 };
 
 export const cheerioFromUrl = async (url: string) => {
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new ScraperError('fetch', `${url} got response with status ${response.status}`);
-	}
+	while (true) {
+		const response = await fetch(url);
 
-	const text = await response.text();
-	return cheerio.load(text);
+		if (response.status === 502) {
+			// they randomly send failed response with this status
+			continue;
+		} else if (!response.ok) {
+			throw new ScraperError('fetch', `${url} got response with status ${response.status}`);
+		}
+
+		const text = await response.text();
+		return cheerio.load(text);
+	}
 };
 
 export class ScraperError extends Error {
