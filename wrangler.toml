@@ -8,3 +8,8 @@ crons = ["*/30 * * * *"]
 [vars]
 # CGAS_API_KEY
 # DISCORD_WEBHOOK_URL
+
+# secrets below are only used for slash command
+# DISCORD_APPLICATION_ID?
+# DISCORD_APPLICATION_PUBLIC_KEY?
+# DISCORD_APPLICATION_TOKEN?

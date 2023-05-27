@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@discord-interactions/verify':
+    specifier: ^0.3.16
+    version: 0.3.16
   cheerio:
     specifier: 1.0.0-rc.12
     version: 1.0.0-rc.12
@@ -27,6 +30,13 @@ packages:
   /@cloudflare/workers-types@4.20230419.0:
     resolution: {integrity: sha512-MfNBlHrI/ekRkbLtdAo23D4hkXF+3QD92OCwuXxCUK73HtMHuBqkMp9T/8KFbKNRCnz7PzUderc7Jr5m3eeW3g==}
     dev: true
+
+  /@discord-interactions/verify@0.3.16:
+    resolution: {integrity: sha512-ECXctx/G2yerCl5Jx9wE7xBG7n82y0tvNCODak31GsFBJLnWPoTUHJNeLpNI9dfJUS4zDhDwkg94RlTGxYgKXg==}
+    engines: {node: '>=16'}
+    dependencies:
+      discord-api-types: 0.37.42
+    dev: false
 
   /@esbuild-plugins/node-globals-polyfill@0.1.1(esbuild@0.16.3):
     resolution: {integrity: sha512-MR0oAA+mlnJWrt1RQVQ+4VYuRJW/P2YmRTv1AsplObyvuBMnPHiizUF95HHYiSsMGLhyGtWufaq2XQg6+iurBg==}
@@ -891,6 +901,10 @@ packages:
     dependencies:
       type-detect: 4.0.8
     dev: true
+
+  /discord-api-types@0.37.42:
+    resolution: {integrity: sha512-1Huaj9cQ1W7/uryS8MZs/tZemnoKB94thM1cE40lep3rpU3q7WHqkdjN/veX0prTkYlPhcyLd/DeF/pBO8X8oQ==}
+    dev: false
 
   /dom-serializer@2.0.0:
     resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
