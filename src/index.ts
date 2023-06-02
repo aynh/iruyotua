@@ -4,7 +4,8 @@ import verifyInteractionSignature from '@discord-interactions/verify';
 import { uploadToCgas } from './cgas';
 import { commands } from './commands';
 import { Interaction, InteractionCallbackType, InteractionResponse, InteractionType } from './commands/types';
-import { ScraperError, getImageUrl, getMaxImagesId } from './scraper';
+import { getImageUrl, getMaxImagesId } from './scraper';
+import { ScraperError, ScraperErrorKind } from './scraper/error';
 
 export interface Env {
 	CGAS_API_KEY?: string;
@@ -110,33 +111,50 @@ const fetch = (async (request, env, _ctx) => {
 const scheduled = (async (_controller, env, ctx) => {
 	let content: string | undefined = undefined;
 
-	try {
-		const maxImagesId = await getMaxImagesId();
-		const randomImageId = Math.floor(Math.random() * (maxImagesId + 1));
+	while (content === undefined) {
+		try {
+			const maxImagesId = await getMaxImagesId();
+			const randomImageId = Math.floor(Math.random() * (maxImagesId + 1));
 
-		content = await getImageUrl(randomImageId).then(async (url) => {
+			const url = await getImageUrl(randomImageId);
 			if (env.CGAS_API_KEY !== undefined) {
 				const cgasUrl = await uploadToCgas(url, env.CGAS_API_KEY);
-				return cgasUrl ?? url;
+				content = cgasUrl ?? url;
+			} else {
+				content = url;
 			}
+		} catch (error) {
+			if (!(error instanceof ScraperError)) {
+				// ignore unknown errors
+				throw error;
+			} else {
+				switch (error.value.type) {
+					case ScraperErrorKind.InvalidHtml: {
+						content = error.toString();
+						break;
+					}
 
-			return url;
-		});
-	} catch (error) {
-		if (error instanceof ScraperError) {
-			content = error.toString();
+					case ScraperErrorKind.ResponseError: {
+						if (error.value.status === 502) {
+							// they randomly send response with this status
+							// so we sleep for 5 seconds
+							await new Promise((resolve) => setTimeout(resolve, 5000));
+						}
+
+						break;
+					}
+				}
+			}
 		}
 	}
 
-	if (content !== undefined) {
-		ctx.waitUntil(
-			globalThis.fetch(env.DISCORD_WEBHOOK_URL, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ content }),
-			}),
-		);
-	}
+	ctx.waitUntil(
+		globalThis.fetch(env.DISCORD_WEBHOOK_URL, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ content }),
+		}),
+	);
 }) satisfies ExportedHandlerScheduledHandler<Env>;
 
 export default { fetch, scheduled } satisfies ExportedHandler<Env>;

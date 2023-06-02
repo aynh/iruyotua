@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getImageUrl, getMaxImagesId } from './scraper';
+import { getImageUrl, getMaxImagesId } from '.';
 
 describe('getMaxImagesId', () => {
 	it('should works', async () => {
