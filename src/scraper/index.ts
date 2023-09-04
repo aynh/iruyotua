@@ -2,6 +2,14 @@ import * as cheerio from 'cheerio';
 
 import { ScraperError, ScraperErrorKind } from './error';
 
+export const downloadImage = async (id: number) => {
+	const url = await getImageUrl(id);
+	const response = await globalThis.fetch(url);
+	const blob = await response.blob();
+
+	return new File([blob], url.split('/').at(-1)!, { type: blob.type });
+};
+
 export const getMaxImagesId = async () => {
 	const url = 'https://dynasty-scans.com/images';
 	const $ = await cheerioFromUrl(url);

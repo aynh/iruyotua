@@ -6,7 +6,6 @@ compatibility_date = "2023-05-11"
 crons = ["*/30 * * * *"]
 
 [vars]
-# CGAS_API_KEY
 # DISCORD_WEBHOOK_URL
 
 # secrets below are only used for slash command

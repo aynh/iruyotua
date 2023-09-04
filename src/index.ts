@@ -1,10 +1,9 @@
 // @ts-expect-error upstream type issue
 import verifyInteractionSignature from '@discord-interactions/verify';
 
-import { uploadToCgas } from './cgas';
 import { commands } from './commands';
 import { Interaction, InteractionCallbackType, InteractionResponse, InteractionType } from './commands/types';
-import { getImageUrl, getMaxImagesId } from './scraper';
+import { downloadImage, getMaxImagesId } from './scraper';
 import { ScraperError, ScraperErrorKind } from './scraper/error';
 
 export interface Env {
@@ -109,52 +108,34 @@ const fetch = (async (request, env, _ctx) => {
 }) satisfies ExportedHandlerFetchHandler<Env>;
 
 const scheduled = (async (_controller, env, ctx) => {
-	let content: string | undefined = undefined;
+	const body = new FormData();
 
-	while (content === undefined) {
+	while (true) {
 		try {
 			const maxImagesId = await getMaxImagesId();
 			const randomImageId = Math.floor(Math.random() * (maxImagesId + 1));
 
-			const url = await getImageUrl(randomImageId);
-			if (env.CGAS_API_KEY !== undefined) {
-				const cgasUrl = await uploadToCgas(url, env.CGAS_API_KEY);
-				content = cgasUrl ?? url;
-			} else {
-				content = url;
-			}
+			const file = await downloadImage(randomImageId);
+			body.set('files[0]', file);
+			break;
 		} catch (error) {
 			if (!(error instanceof ScraperError)) {
 				// ignore unknown errors
 				throw error;
 			} else {
-				switch (error.value.type) {
-					case ScraperErrorKind.InvalidHtml: {
-						content = error.toString();
-						break;
-					}
-
-					case ScraperErrorKind.ResponseError: {
-						if (error.value.status === 502) {
-							// they randomly send response with this status
-							// so we sleep for 5 seconds
-							await new Promise((resolve) => setTimeout(resolve, 5000));
-						}
-
-						break;
-					}
+				if (error.value.type === ScraperErrorKind.InvalidHtml) {
+					// send the error as webhook content
+					body.append('content', error.toString());
+				} else if (error.value.type === ScraperErrorKind.ResponseError && error.value.status === 502) {
+					// they randomly send response with this status
+					// so we sleep for 5 seconds and try again
+					await new Promise((resolve) => setTimeout(resolve, 5000));
 				}
 			}
 		}
 	}
 
-	ctx.waitUntil(
-		globalThis.fetch(env.DISCORD_WEBHOOK_URL, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ content }),
-		}),
-	);
+	ctx.waitUntil(globalThis.fetch(env.DISCORD_WEBHOOK_URL, { body, method: 'POST' }));
 }) satisfies ExportedHandlerScheduledHandler<Env>;
 
 export default { fetch, scheduled } satisfies ExportedHandler<Env>;
